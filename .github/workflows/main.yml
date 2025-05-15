@@ -1,0 +1,32 @@
+name: Run Databricks Notebook
+
+on:
+  push:
+    paths:
+      - notebooks/**  # Runs when any notebook changes
+  workflow_dispatch:  # Manual trigger option
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Databricks CLI
+      run: pip install databricks-cli
+
+    - name: Configure Databricks CLI
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      run: |
+        databricks configure --token <<EOF
+        $DATABRICKS_HOST
+        $DATABRICKS_TOKEN
+        EOF
+
+    - name: Submit Databricks job
+      run: |
+        databricks runs submit --json-file run_config.json
